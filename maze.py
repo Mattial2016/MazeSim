@@ -19,6 +19,13 @@ class Maze:
             self.x = x
             self.y = y
 
+    class Position:
+        def __init__(self, x, y, sensor):
+            self.x = x
+            self.y = y
+            self.sensor = []
+            self.xy = []
+
         def __eq__(self, other):
             return self.x == other.x and self.y == other.y
 
@@ -89,12 +96,42 @@ class Maze:
         self.goal = self.Point(gen_rand(), gen_rand())
         while (
             self.start == self.goal
-            or self.len_to_poin(self.start, self.goal) < self.size
+            or self.len_to_poin(self.start, self.goal) < self.size / 2
         ):
             self.goal = self.Point(gen_rand(), gen_rand())
         self.maze[self.goal.y][self.goal.x] = 3  # "G"
 
         self.generate_maze(self.goal)
+
+    def generate_walls(self):
+        added = 0
+        while added < self.size * self.size / 2 + self.size*10:
+            x = random.choice(range(self.size))
+            y = random.choice(range(self.size))
+            if self.maze[x][y] == 0:
+                self.maze[x][y] = 1
+                added += 1
+
+    def get_view(self, x, y):
+        sensor = [0,0,0,0]  # top , right, down, left
+        xy = []
+        if x < self.size-1:
+            sensor[1] = self.maze[y][x + 1]
+        if x > 0:
+            sensor[3] = self.maze[y][x - 1]
+        if y < self.size-1:
+            sensor[2] = self.maze[y + 1][x]
+        if y > 0:
+            sensor[0] = self.maze[y - 1][x]
+        if sensor[0] != 0 and sensor[0] != 5 and sensor[0] !=2:
+            xy.append((x, y - 1))
+        if sensor[1] != 0 and sensor[1] != 5 and sensor[1] !=2:
+            xy.append((x + 1, y))
+        if sensor[2] != 0 and sensor[2] != 5 and sensor[2] !=2:
+            xy.append((x, y + 1))
+        if sensor[3] != 0 and sensor[3] != 5 and sensor[3] !=2:
+            xy.append((x - 1, y))
+        return xy
 
     def display(self):
         print(f"Start: {(self.start.x, self.start.y)}")
@@ -105,6 +142,7 @@ class Maze:
 
 
 def get_maze():
-    maze = Maze(50)
+    maze = Maze(100)
     maze.generate()
-    return maze.maze
+    maze.generate_walls()
+    return maze

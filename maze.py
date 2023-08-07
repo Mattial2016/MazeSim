@@ -53,10 +53,6 @@ class Maze:
             self.Point(x_l, p.y),
             self.Point(p.x, y_l),
             self.Point(p.x, y_h),
-            self.Point(x_h, p.y),
-            self.Point(x_l, p.y),
-            self.Point(p.x, y_l),
-            self.Point(p.x, y_h),
         ]
         remove_moves = []
         add_moves = []
@@ -68,7 +64,6 @@ class Maze:
             elif move in self.last_moves:
                 remove_moves.append(move)
             elif self.len_to_poin(move, self.start) <= self.last_distance:
-                add_moves.append(move)
                 add_moves.append(move)
         possible_moves.extend(add_moves)
         possible_moves = [move for move in possible_moves if move not in remove_moves]
@@ -96,7 +91,7 @@ class Maze:
         self.goal = self.Point(gen_rand(), gen_rand())
         while (
             self.start == self.goal
-            or self.len_to_poin(self.start, self.goal) < self.size / 2
+            or self.len_to_poin(self.start, self.goal) < self.size
         ):
             self.goal = self.Point(gen_rand(), gen_rand())
         self.maze[self.goal.y][self.goal.x] = 3  # "G"
@@ -105,7 +100,7 @@ class Maze:
 
     def generate_walls(self):
         added = 0
-        while added < self.size * self.size / 2 + self.size*10:
+        while added < self.size * self.size / 2 + self.size * self.size / 15:
             x = random.choice(range(self.size))
             y = random.choice(range(self.size))
             if self.maze[x][y] == 0:
@@ -113,24 +108,33 @@ class Maze:
                 added += 1
 
     def get_view(self, x, y):
-        sensor = [0,0,0,0]  # top , right, down, left
+        sensor = [0, 0, 0, 0]  # top , right, down, left
         xy = []
-        if x < self.size-1:
+        if x < self.size - 1:
             sensor[1] = self.maze[y][x + 1]
         if x > 0:
             sensor[3] = self.maze[y][x - 1]
-        if y < self.size-1:
+        if y < self.size - 1:
             sensor[2] = self.maze[y + 1][x]
         if y > 0:
             sensor[0] = self.maze[y - 1][x]
-        if sensor[0] != 0 and sensor[0] != 5 and sensor[0] !=2:
+        if sensor[0] not in [0, 5, 2]:
+            if sensor[0] == 3:
+                return [(x, y - 1)]
             xy.append((x, y - 1))
-        if sensor[1] != 0 and sensor[1] != 5 and sensor[1] !=2:
+        if sensor[1] not in [0, 5, 2]:
+            if sensor[1] == 3:
+                return [(x + 1, y)]
             xy.append((x + 1, y))
-        if sensor[2] != 0 and sensor[2] != 5 and sensor[2] !=2:
+        if sensor[2] not in [0, 5, 2]:
+            if sensor[2] == 3:
+                return [(x, y + 1)]
             xy.append((x, y + 1))
-        if sensor[3] != 0 and sensor[3] != 5 and sensor[3] !=2:
+        if sensor[3] not in [0, 5, 2]:
+            if sensor[3] == 3:
+                return [(x - 1, y)]
             xy.append((x - 1, y))
+        xy = random.sample(xy, k=len(xy))
         return xy
 
     def display(self):
@@ -142,7 +146,7 @@ class Maze:
 
 
 def get_maze():
-    maze = Maze(100)
+    maze = Maze(200)
     maze.generate()
     maze.generate_walls()
     return maze

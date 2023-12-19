@@ -19,6 +19,9 @@ class Maze:
             self.x = x
             self.y = y
 
+        def get_pos(self):
+            return (self.x, self.y)
+
     class Position:
         def __init__(self, x, y, sensor):
             self.x = x
@@ -37,7 +40,7 @@ class Maze:
         self.last_moves = []
         self.last_distance = 1000000
 
-    def len_to_poin(self, p1, p2):
+    def len_to_point(self, p1, p2):
         """Calcualte distance between p1 and p2"""
         return abs(p1.x - p2.x) + abs(p1.y - p2.y)
 
@@ -63,7 +66,7 @@ class Maze:
                 remove_moves.append(move)
             elif move in self.last_moves:
                 remove_moves.append(move)
-            elif self.len_to_poin(move, self.start) <= self.last_distance:
+            elif self.len_to_point(move, self.start) <= self.last_distance:
                 add_moves.append(move)
         possible_moves.extend(add_moves)
         possible_moves = [move for move in possible_moves if move not in remove_moves]
@@ -71,7 +74,7 @@ class Maze:
             possible_moves = self.last_moves[0:2]
         choice = random.choice(possible_moves)
         self.maze[choice.y][choice.x] = 1
-        self.last_distance = self.len_to_poin(choice, self.start)
+        self.last_distance = self.len_to_point(choice, self.start)
         self.last_moves.append(choice)
         if len(self.last_moves) > 5:
             self.last_moves = self.last_moves[1:]
@@ -91,21 +94,23 @@ class Maze:
         self.goal = self.Point(gen_rand(), gen_rand())
         while (
             self.start == self.goal
-            or self.len_to_poin(self.start, self.goal) < self.size
+            or self.len_to_point(self.start, self.goal) < self.size
+            or self.len_to_point(self.start, self.goal) > self.size * 1.5
         ):
             self.goal = self.Point(gen_rand(), gen_rand())
         self.maze[self.goal.y][self.goal.x] = 3  # "G"
-
         self.generate_maze(self.goal)
 
     def generate_walls(self):
-        added = 0
-        while added < self.size * self.size / 2 + self.size * self.size / 15:
-            x = random.choice(range(self.size))
-            y = random.choice(range(self.size))
-            if self.maze[x][y] == 0:
-                self.maze[x][y] = 1
-                added += 1
+        possible_walls = []
+        for i in range(len(self.maze)):
+            for j in range(len(self.maze[i])):
+                if self.maze[i][j] == 0:
+                    possible_walls.append((i, j))
+        possible_walls = random.sample(possible_walls, k=len(possible_walls))
+        for i in range((int(self.size * self.size / 2 + self.size * self.size / 13))):
+            y, x = possible_walls[i]
+            self.maze[y][x] = 1
 
     def get_view(self, x, y):
         sensor = [0, 0, 0, 0]  # top , right, down, left
@@ -146,7 +151,7 @@ class Maze:
 
 
 def get_maze():
-    maze = Maze(200)
+    maze = Maze(100)
     maze.generate()
     maze.generate_walls()
     return maze

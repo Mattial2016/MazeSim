@@ -1,5 +1,7 @@
 import time
+import sys
 
+sys.setrecursionlimit(10**6)
 
 def current_millis():
     return round(time.time() * 1000)
@@ -61,6 +63,45 @@ class DepthFirst:
         print(f"Total nbr of moves: {self.nbr_moves}")
 
 
+class FloodGate:
+    def __init__(self, pl):
+        self.pl = pl
+        self.pos = []
+        self.nbr_moves = 0
+        self.visited = []
+        self.visited_order = []
+        self.stack = [(pl.x, pl.y)]
+
+
+    def _dist(self, p):
+        x, y = p
+        return abs(x-self.pl.maze.goal.x) + abs(y-self.pl.maze.goal.y)
+        
+    def run(self):
+        while not self.pl.check_win():
+            pos = self.stack.pop()
+            while pos in self.visited:
+                pos = self.stack.pop()
+            self.pl.x, self.pl.y = pos
+            self.visited.append(pos)
+            self.visited_order.append(pos)
+            self.nbr_moves += 1
+            if self.pl.check_win():
+                return True
+            self.stack.extend(self.pl.get_view())
+            self.stack = sorted(self.stack, reverse=True, key=self._dist)
+
+    def init(self):
+        start_time = current_millis()
+        while self.stack != []:
+            if self.run():
+                break
+        finish_time = current_millis()
+        print("---------Flood Gate ---------")
+        print(f"Total time: {finish_time-start_time}")
+        print(f"Total nbr of moves: {self.nbr_moves}")
+
+
 class BreadthFirst:
     def __init__(self, pl):
         self.pl = pl
@@ -68,7 +109,6 @@ class BreadthFirst:
         self.pos = []
         self.visited = []
         self.visited_order = []
-
         self.stack = [(pl.x, pl.y)]
 
     def run(self):
